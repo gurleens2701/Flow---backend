@@ -1,4 +1,9 @@
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+console.log('ENV CHECK:', process.env.SUPABASE_URL ? 'URL LOADED' : 'URL MISSING');
+
+
 const express = require('express')
 const { authenticateUser } = require('./middleware/auth');
 
