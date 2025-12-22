@@ -28,6 +28,10 @@ app.get('/api/protected' , authenticateUser, (req, res) => {
         });
     });    
 
+    // Invoice processing routes
+const invoiceRoutes = require('./routes/invoices');
+app.use('/api/invoices', invoiceRoutes);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
