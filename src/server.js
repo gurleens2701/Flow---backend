@@ -33,9 +33,12 @@ const invoiceRoutes = require('./routes/invoices');
 app.use('/api/invoices', invoiceRoutes);
 
 const PORT = process.env.PORT || 3000;
+// Middleware to parse JSON bodies
+app.use(express.json());
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
     
 
 
