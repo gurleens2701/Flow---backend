@@ -7,7 +7,7 @@ const { processInvoice } = require('../services/ocr');
  * POST /api/invoices/process
  * Process an uploaded invoice image
  */
-router.post('/process', async (req, res) => {
+router.post('/process', authenticateUser, async (req, res) => {
   try {
     // TODO 1: Get image_url from request body
     const image_url = req.body.image_url;
