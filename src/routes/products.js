@@ -9,6 +9,16 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+  // Normalize product names before embedding
+  const normalizeProductName = (name) => {
+    return name
+      .replace(/\s*\d+\s*\/\s*CRT\s*$/i, '')
+      .replace(/\s*\d+\s*\/\s*BOX\s*$/i, '')
+      .replace(/\s*\d+\s*CT\s*$/i, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
 /**
  * POST /api/products/save-with-embeddings
  * Efficiently generates embeddings in bulk and saves to Supabase
@@ -26,7 +36,7 @@ router.post('/save-with-embeddings', authenticateUser, async (req, res) => {
     console.log(`Processing ${products.length} products for user ${userId}`);
 
     // 2. Batch Embedding Generation
-    const productNames = products.map(p => p.name);
+    const productNames = products.map(p => normalizeProductName(p.name));
     
     const embeddingResponse = await openai.embeddings.create({
       model: 'text-embedding-3-small',
