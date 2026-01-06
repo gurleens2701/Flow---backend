@@ -82,7 +82,7 @@ async function parseInvoiceText(ocrText) {
         messages: [
           {
             role:"system",
-            content:`You are an invoice parser. Extract warehouse name, products, and prices from OCR text.
+            content: `You are an invoice parser for convenience store wholesale products. Extract warehouse name, products, and prices from OCR text.
 
             Rules:
             - Extract ONLY products with clear prices (ignore subtotals, taxes, totals)
@@ -90,18 +90,36 @@ async function parseInvoiceText(ocrText) {
             - Overall confidence: Average of all product confidences
             - If warehouse name unclear, use "Unknown" with low confidence
             - Product names should include size/quantity if present
-            
+
+            CRITICAL - Standardized Names:
+            For each product, provide a "standardized_name" that normalizes wholesale abbreviations so the same product from different warehouses can be matched.
+
+            Normalization rules:
+            - BX/BOX → Box
+            - KS → King Size  
+            - 100/100S → 100s
+            - Remove: FSC, CT, CRT, /BOX, /CRT (packaging codes)
+            - Normalize to Title Case
+            - Keep: Brand + Variant (color/flavor) + Size
+            - Examples:
+            "24/7 RED BX KS FSC 1 CT" → "24/7 Red King Size"
+            "24/7 BOX KING RED" → "24/7 Red King Size"
+            "BASIC GOLD BX 100 FSC 3 CT" → "Basic Gold 100s"
+            "MARLBORO BOX GOLD" → "Marlboro Gold Box"
+            "COCA COLA 12OZ 24PK" → "Coca Cola 12oz 24 Pack"
+
             Return ONLY valid JSON in this format:
             {
-              "warehouse": "string",
-              "confidence": number,
-              "products": [
+            "warehouse": "string",
+            "confidence": number,
+            "products": [
                 {
-                  "name": "string",
-                  "price": number,
-                  "confidence": number
+                "name": "string",
+                "standardized_name": "string",
+                "price": number,
+                "confidence": number
                 }
-              ]
+            ]
             }`
           },
           

@@ -9,16 +9,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const normalizeProductName = (name) => {
-    return name
-      .replace(/\s*\d+\s*\/\s*CRT\s*$/i, '')   // Remove 10/CRT at end
-      .replace(/\s*\d+\s*\/\s*BOX\s*$/i, '')   // Remove 10/BOX at end
-      .replace(/\s*\d+\s*CT\s*$/i, '')         // Remove 5CT at end
-      .replace(/\s*FSC\s*$/gi, '')             // Remove FSC at end
-      .replace(/\s+/g, ' ')                     // Normalize whitespace
-      .trim();
-  };
-
 /**
  * POST /api/products/save-with-embeddings
  * Efficiently generates embeddings in bulk and saves to Supabase
@@ -36,12 +26,11 @@ router.post('/save-with-embeddings', authenticateUser, async (req, res) => {
     console.log(`Processing ${products.length} products for user ${userId}`);
 
     // 2. Batch Embedding Generation
+    // 2. Batch Embedding Generation - use GPT's standardized names
     const productNames = products.map(p => {
-        const original = p.name;
-        const normalized = normalizeProductName(p.name);
-        console.log(`Original: "${original}" → Normalized: "${normalized}"`);
-        return normalized;
-      });
+        console.log(`Original: "${p.name}" → Standardized: "${p.standardized_name}"`);
+        return p.standardized_name || p.name;  // fallback to name if standardized_name missing
+    });
     
     const embeddingResponse = await openai.embeddings.create({
       model: 'text-embedding-3-small',
