@@ -100,7 +100,7 @@ async function parseInvoiceText(ocrText) {
             - 100/100S → 100s
             - Remove: FSC, CT, CRT, /BOX, /CRT (packaging codes)
             - Normalize to Title Case
-            - Keep: Brand + Variant (color/flavor) + Size
+            - Keep: Brand + Variant (color/flavor) + Size + Pack Type (Box or Soft Pack)
             - Examples:
             "24/7 RED BX KS FSC 1 CT" → "24/7 Red King Size"
             "24/7 BOX KING RED" → "24/7 Red King Size"
