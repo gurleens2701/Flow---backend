@@ -39,9 +39,10 @@ router.post('/save-with-embeddings', authenticateUser, async (req, res) => {
 
     // 3. Reconstruct Product Objects with their Vectors
     const productsWithEmbeddings = products.map((product, index) => ({
-      name: product.name,
-      price: product.price,
-      embedding: embeddingResponse.data[index].embedding,
+        name: product.name,
+        standardized_name: product.standardized_name,
+        price: product.price,
+        embedding: embeddingResponse.data[index].embedding,
     }));
 
     // 4. Save to Database via Supabase RPC
