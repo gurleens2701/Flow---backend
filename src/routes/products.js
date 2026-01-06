@@ -36,7 +36,12 @@ router.post('/save-with-embeddings', authenticateUser, async (req, res) => {
     console.log(`Processing ${products.length} products for user ${userId}`);
 
     // 2. Batch Embedding Generation
-    const productNames = products.map(p => normalizeProductName(p.name));
+    const productNames = products.map(p => {
+        const original = p.name;
+        const normalized = normalizeProductName(p.name);
+        console.log(`Original: "${original}" → Normalized: "${normalized}"`);
+        return normalized;
+      });
     
     const embeddingResponse = await openai.embeddings.create({
       model: 'text-embedding-3-small',
