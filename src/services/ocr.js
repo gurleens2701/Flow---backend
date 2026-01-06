@@ -89,24 +89,35 @@ async function parseInvoiceText(ocrText) {
             - Confidence score (0-100): How certain you are about each extraction
             - Overall confidence: Average of all product confidences
             - If warehouse name unclear, use "Unknown" with low confidence
-            - Product names should include size/quantity if present
 
             CRITICAL - Standardized Names:
-            For each product, provide a "standardized_name" that normalizes wholesale abbreviations so the same product from different warehouses can be matched.
+            For each product, provide a "standardized_name" following these EXACT rules:
 
-            Normalization rules:
-            - BX/BOX → Box
-            - KS → King Size  
-            - 100/100S → 100s
-            - Remove: FSC, CT, CRT, /BOX, /CRT (packaging codes)
-            - Normalize to Title Case
-            - Keep: Brand + Variant (color/flavor) + Size + Pack Type (Box or Soft Pack)
-            - Examples:
-            "24/7 RED BX KS FSC 1 CT" → "24/7 Red King Size"
-            "24/7 BOX KING RED" → "24/7 Red King Size"
-            "BASIC GOLD BX 100 FSC 3 CT" → "Basic Gold 100s"
-            "MARLBORO BOX GOLD" → "Marlboro Gold Box"
-            "COCA COLA 12OZ 24PK" → "Coca Cola 12oz 24 Pack"
+            ALWAYS KEEP (normalize spelling):
+            - BX or BOX → "Box" (this is the pack type - important!)
+            - SP or SOFT → "Soft Pack"
+            - KS → "King Size"
+            - 100 or 100S → "100s"
+            - Brand name
+            - Variant (Gold, Red, Blue, Menthol, Silver, etc.)
+
+            ALWAYS REMOVE (compliance/packaging codes):
+            - FSC (Fire Safe Cigarette)
+            - CT, CRT (count)
+            - Numbers like "1 CT", "3 CT"
+            - Price info
+
+            FORMAT: Brand + Variant + Size + Pack Type
+            Examples:
+            - "24/7 RED BX KS FSC 1 CT" → "24/7 Red King Size Box"
+            - "24/7 BOX KING RED" → "24/7 Red King Size Box"
+            - "BASIC GOLD BX KS FSC" → "Basic Gold King Size Box"
+            - "BASIC GOLD BX 100 FSC 3 CT" → "Basic Gold 100s Box"
+            - "MARLBORO GOLD SP KS" → "Marlboro Gold King Size Soft Pack"
+            - "LD 100 RED" → "LD Red 100s Box"
+            - "COCA COLA 12OZ 24PK" → "Coca Cola 12oz 24 Pack"
+
+            IMPORTANT: If original has BX or BOX, the standardized name MUST end with "Box".
 
             Return ONLY valid JSON in this format:
             {
