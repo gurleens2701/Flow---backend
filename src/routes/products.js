@@ -9,13 +9,13 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-  // Normalize product names before embedding
-  const normalizeProductName = (name) => {
+const normalizeProductName = (name) => {
     return name
-      .replace(/\s*\d+\s*\/\s*CRT\s*$/i, '')
-      .replace(/\s*\d+\s*\/\s*BOX\s*$/i, '')
-      .replace(/\s*\d+\s*CT\s*$/i, '')
-      .replace(/\s+/g, ' ')
+      .replace(/\s*\d+\s*\/\s*CRT\s*$/i, '')   // Remove 10/CRT at end
+      .replace(/\s*\d+\s*\/\s*BOX\s*$/i, '')   // Remove 10/BOX at end
+      .replace(/\s*\d+\s*CT\s*$/i, '')         // Remove 5CT at end
+      .replace(/\s*FSC\s*$/gi, '')             // Remove FSC at end
+      .replace(/\s+/g, ' ')                     // Normalize whitespace
       .trim();
   };
 
