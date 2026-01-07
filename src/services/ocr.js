@@ -91,33 +91,48 @@ async function parseInvoiceText(ocrText) {
             - If warehouse name unclear, use "Unknown" with low confidence
 
             CRITICAL - Standardized Names:
-            For each product, provide a "standardized_name" following these EXACT rules:
+            Create a "standardized_name" that normalizes product names so the same product from different warehouses can match.
 
-            ALWAYS KEEP (normalize spelling):
-            - BX or BOX → "Box" (this is the pack type - important!)
-            - SP or SOFT → "Soft Pack"
+            CIGARETTES (Marlboro, Camel, Newport, Basic, 24/7, Crowns, LD, Winston, etc.):
+            - BX or BOX → "Box" (pack type - KEEP!)
+            - SP or SOFT → "Soft Pack"  
             - KS → "King Size"
             - 100 or 100S → "100s"
-            - Brand name
-            - Variant (Gold, Red, Blue, Menthol, Silver, etc.)
+            - REMOVE: FSC, CT, CRT (compliance codes)
+            - Format: Brand + Variant + Size + Pack Type
+            - Examples:
+            "24/7 RED BX KS FSC 1 CT" → "24/7 Red King Size Box"
+            "MARLBORO GOLD BX 100 FSC" → "Marlboro Gold 100s Box"
 
-            ALWAYS REMOVE (compliance/packaging codes):
-            - FSC (Fire Safe Cigarette)
-            - CT, CRT (count)
-            - Numbers like "1 CT", "3 CT"
-            - Price info
+            CIGARS/TOBACCO (White Owl, Swisher, Lil Leaf, Black & Mild, etc.):
+            - Keep flavor/variant
+            - PK → "Pack"
+            - REMOVE: Price info (2/1.19, 3/$2.99), CT counts
+            - Format: Brand + Variant + Pack Size
+            - Examples:
+            "WHITE OWL-RED, WHITE & BERRY - 2/1.19 - 2PK/30 CT" → "White Owl Red White & Berry 2 Pack"
+            "LIL LEAF-RUSSIAN CREAM-3/$2.99-10-3PK" → "Lil Leaf Russian Cream 3 Pack"
 
-            FORMAT: Brand + Variant + Size + Pack Type
-            Examples:
-            - "24/7 RED BX KS FSC 1 CT" → "24/7 Red King Size Box"
-            - "24/7 BOX KING RED" → "24/7 Red King Size Box"
-            - "BASIC GOLD BX KS FSC" → "Basic Gold King Size Box"
-            - "BASIC GOLD BX 100 FSC 3 CT" → "Basic Gold 100s Box"
-            - "MARLBORO GOLD SP KS" → "Marlboro Gold King Size Soft Pack"
-            - "LD 100 RED" → "LD Red 100s Box"
-            - "COCA COLA 12OZ 24PK" → "Coca Cola 12oz 24 Pack"
+            CANDY/SNACKS:
+            - Keep size/count if it identifies the product
+            - REMOVE: CT when it's case quantity
+            - Format: Brand + Flavor + Size
+            - Examples:
+            "Brach's Peppermint Candy Canes Jar 260 CT" → "Brach's Peppermint Candy Canes Jar"
+            "Laffy Taffy Rope - Mystery Swirl 24 CT" → "Laffy Taffy Rope Mystery Swirl"
+            "SNICKERS 1.86OZ 48CT" → "Snickers 1.86oz"
 
-            IMPORTANT: If original has BX or BOX, the standardized name MUST end with "Box".
+            BEVERAGES:
+            - Keep size and pack count
+            - Format: Brand + Flavor + Size + Pack
+            - Examples:
+            "COCA COLA 12OZ 24PK" → "Coca Cola 12oz 24 Pack"
+            "RED BULL 8.4OZ 12CT" → "Red Bull 8.4oz 12 Pack"
+
+            ALWAYS REMOVE from all categories:
+            - Price info ($, /, cents)
+            - Case quantities at the end
+            - Compliance codes (FSC)
 
             Return ONLY valid JSON in this format:
             {
