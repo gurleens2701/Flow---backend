@@ -12,15 +12,6 @@ router.post('/optimize', authenticateUser, async (req, res) => {
     const { items } = req.body;
     const userId = req.user.id;
 
-    // RAW TEST - Query with no filters at all
-    const { data: rawTest, error: rawError } = await supabase
-      .from('prices')
-      .select('*')
-      .limit(3);
-
-    console.log('RAW TEST - data:', rawTest);
-    console.log('RAW TEST - error:', rawError);
-
     console.log('Received items:', items);
     console.log('User ID:', userId);
 
@@ -29,25 +20,48 @@ router.post('/optimize', authenticateUser, async (req, res) => {
       return res.status(400).json({ error: 'Items array is required' });
     }
 
-    // Step 2: Fetch all prices for these products from all warehouses
-    const productIds = items.map(item => item.productId);
-    console.log('Product IDs:', productIds);
-
-    // Simplified query - no .in() filter
+    // Step 2: Fetch all prices
     const { data: prices, error } = await supabase
       .from('prices')
-      .select('product_id, warehouse_id, price, products(id, name), warehouses(id, name)')
-      .eq('user_id', userId)
+      .select('product_id, warehouse_id, price')
       .eq('is_current', true);
 
     console.log('Prices count:', prices?.length);
-    console.log('First price:', prices?.[0]);
-    console.log('DB Error:', error);
 
     if (error) throw error;
 
-    // Filter in JavaScript
-    const filteredPrices = prices?.filter(p => productIds.includes(p.product_id)) || [];
+    // Fetch products separately
+    const { data: products, error: prodError } = await supabase
+      .from('products')
+      .select('id, name');
+
+    if (prodError) throw prodError;
+
+    // Fetch warehouses separately
+    const { data: warehouses, error: whError } = await supabase
+      .from('warehouses')
+      .select('id, name');
+
+    if (whError) throw whError;
+
+    // Create lookup maps
+    const productLookup = {};
+    products.forEach(p => productLookup[p.id] = p.name);
+
+    const warehouseLookup = {};
+    warehouses.forEach(w => warehouseLookup[w.id] = w.name);
+
+    // Add names to prices
+    const pricesWithNames = prices.map(p => ({
+      ...p,
+      productName: productLookup[p.product_id] || 'Unknown',
+      warehouseName: warehouseLookup[p.warehouse_id] || 'Unknown'
+    }));
+
+    // Filter by cart items
+    const productIds = items.map(item => item.productId);
+    const filteredPrices = pricesWithNames.filter(p => productIds.includes(p.product_id));
+
     console.log('Filtered prices count:', filteredPrices.length);
 
     // Step 3: Calculate totals for each warehouse (Section 1)
@@ -58,7 +72,7 @@ router.post('/optimize', authenticateUser, async (req, res) => {
       if (!warehouseMap[wId]) {
         warehouseMap[wId] = {
           warehouseId: wId,
-          warehouseName: price.warehouses.name,
+          warehouseName: price.warehouseName,
           items: []
         };
       }
@@ -82,7 +96,7 @@ router.post('/optimize', authenticateUser, async (req, res) => {
           const productInfo = filteredPrices.find(p => p.product_id === cartItem.productId);
           missingItems.push({
             productId: cartItem.productId,
-            name: productInfo ? productInfo.products.name : 'Unknown',
+            name: productInfo ? productInfo.productName : 'Unknown',
             quantity: cartItem.quantity
           });
         }
@@ -120,7 +134,7 @@ router.post('/optimize', authenticateUser, async (req, res) => {
       if (!shoppingListMap[wId]) {
         shoppingListMap[wId] = {
           warehouseId: wId,
-          warehouseName: cheapest.warehouses.name,
+          warehouseName: cheapest.warehouseName,
           items: [],
           total: 0
         };
@@ -128,7 +142,7 @@ router.post('/optimize', authenticateUser, async (req, res) => {
       
       shoppingListMap[wId].items.push({
         productId: cartItem.productId,
-        name: cheapest.products.name,
+        name: cheapest.productName,
         quantity: cartItem.quantity,
         price: cheapest.price,
         subtotal: subtotal
