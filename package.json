@@ -1,21 +1,22 @@
 {
-    "name": "backend",
-    "version": "1.0.0",
-    "main": "src/server.js",
-    "scripts": {
-        "start": "node src/server.js"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "type": "commonjs",
-    "description": "",
-    "dependencies": {
-        "@google-cloud/vision": "^5.3.4",
-        "@supabase/supabase-js": "^2.84.0",
-        "cors": "^2.8.5",
-        "dotenv": "^17.2.3",
-        "express": "^5.1.0",
-        "openai": "^6.14.0"
-    }
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "",
+  "dependencies": {
+    "@google-cloud/vision": "^5.3.4",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@supabase/supabase-js": "^2.84.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "openai": "^6.14.0"
+  }
 }

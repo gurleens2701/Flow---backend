@@ -36,6 +36,11 @@ app.use('/api/invoices', invoiceRoutes);
 const productRoutes = require('./routes/products')
 app.use('/api/products', productRoutes);
 
+// Order routes 
+const orderRoutes = require('./routes/orders');
+app.use('/api/orders', orderRoutes);
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
