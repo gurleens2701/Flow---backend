@@ -12,6 +12,15 @@ router.post('/optimize', authenticateUser, async (req, res) => {
     const { items } = req.body;
     const userId = req.user.id;
 
+    // RAW TEST - Query with no filters at all
+    const { data: rawTest, error: rawError } = await supabase
+      .from('prices')
+      .select('*')
+      .limit(3);
+
+    console.log('RAW TEST - data:', rawTest);
+    console.log('RAW TEST - error:', rawError);
+
     console.log('Received items:', items);
     console.log('User ID:', userId);
 
