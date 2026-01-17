@@ -8,26 +8,35 @@ const { supabase } = require('../config/supabase');
  * Calculate price comparison across warehouses
  */
 router.post('/optimize', authenticateUser, async (req, res) => {
-  try {
-    const { items } = req.body;
-    const userId = req.user.id;
-
-    // Step 1: Validate input
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: 'Items array is required' });
-    }
-
-    // Step 2: Fetch all prices for these products from all warehouses
-    const productIds = items.map(item => item.productId);
-
-    const { data: prices, error } = await supabase
-      .from('prices')
-      .select('product_id, warehouse_id, price, products(id, name), warehouses(id, name)')
-      .eq('user_id', userId)
-      .eq('is_current', true)
-      .in('product_id', productIds);
-
-    if (error) throw error;
+    try {
+      const { items } = req.body;
+      const userId = req.user.id;
+  
+      console.log('Received items:', items);  // Add this
+      console.log('User ID:', userId);  // Add this
+  
+      // Step 1: Validate input
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ error: 'Items array is required' });
+      }
+  
+      // Step 2: Fetch all prices
+      const productIds = items.map(item => item.productId);
+      console.log('Product IDs:', productIds);  // Add this
+  
+      const { data: prices, error } = await supabase
+        .from('prices')
+        .select('product_id, warehouse_id, price, products(id, name), warehouses(id, name)')
+        .eq('user_id', userId)
+        .eq('is_current', true)
+        .in('product_id', productIds);
+  
+      console.log('Prices from DB:', prices);  // Add this
+      console.log('DB Error:', error);  // Add this
+  
+      if (error) throw error;
+  
+      // ... rest of code
 
     // Step 3: Calculate totals for each warehouse (Section 1)
     const warehouseMap = {};
