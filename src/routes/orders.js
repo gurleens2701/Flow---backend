@@ -8,40 +8,43 @@ const { supabase } = require('../config/supabase');
  * Calculate price comparison across warehouses
  */
 router.post('/optimize', authenticateUser, async (req, res) => {
-    try {
-      const { items } = req.body;
-      const userId = req.user.id;
-  
-      console.log('Received items:', items);  // Add this
-      console.log('User ID:', userId);  // Add this
-  
-      // Step 1: Validate input
-      if (!items || !Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({ error: 'Items array is required' });
-      }
-  
-      // Step 2: Fetch all prices
-      const productIds = items.map(item => item.productId);
-      console.log('Product IDs:', productIds);  // Add this
-  
-      const { data: prices, error } = await supabase
-        .from('prices')
-        .select('product_id, warehouse_id, price, products(id, name), warehouses(id, name)')
-        .eq('user_id', userId)
-        .eq('is_current', true)
-        .in('product_id', productIds);
-  
-      console.log('Prices from DB:', prices);  // Add this
-      console.log('DB Error:', error);  // Add this
-  
-      if (error) throw error;
-  
-      // ... rest of code
+  try {
+    const { items } = req.body;
+    const userId = req.user.id;
+
+    console.log('Received items:', items);
+    console.log('User ID:', userId);
+
+    // Step 1: Validate input
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Items array is required' });
+    }
+
+    // Step 2: Fetch all prices for these products from all warehouses
+    const productIds = items.map(item => item.productId);
+    console.log('Product IDs:', productIds);
+
+    // Simplified query - no .in() filter
+    const { data: prices, error } = await supabase
+      .from('prices')
+      .select('product_id, warehouse_id, price, products(id, name), warehouses(id, name)')
+      .eq('user_id', userId)
+      .eq('is_current', true);
+
+    console.log('Prices count:', prices?.length);
+    console.log('First price:', prices?.[0]);
+    console.log('DB Error:', error);
+
+    if (error) throw error;
+
+    // Filter in JavaScript
+    const filteredPrices = prices?.filter(p => productIds.includes(p.product_id)) || [];
+    console.log('Filtered prices count:', filteredPrices.length);
 
     // Step 3: Calculate totals for each warehouse (Section 1)
     const warehouseMap = {};
 
-    prices.forEach(price => {
+    filteredPrices.forEach(price => {
       const wId = price.warehouse_id;
       if (!warehouseMap[wId]) {
         warehouseMap[wId] = {
@@ -67,7 +70,7 @@ router.post('/optimize', authenticateUser, async (req, res) => {
           total += priceData.price * cartItem.quantity;
           itemCount++;
         } else {
-          const productInfo = prices.find(p => p.product_id === cartItem.productId);
+          const productInfo = filteredPrices.find(p => p.product_id === cartItem.productId);
           missingItems.push({
             productId: cartItem.productId,
             name: productInfo ? productInfo.products.name : 'Unknown',
@@ -93,7 +96,7 @@ router.post('/optimize', authenticateUser, async (req, res) => {
     let bestTotal = 0;
 
     items.forEach(cartItem => {
-      const productPrices = prices.filter(p => p.product_id === cartItem.productId);
+      const productPrices = filteredPrices.filter(p => p.product_id === cartItem.productId);
       
       if (productPrices.length === 0) return;
       
