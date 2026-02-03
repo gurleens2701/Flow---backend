@@ -11,7 +11,7 @@ const openai = new OpenAI({
 // Generate embedding for product name
 async function generateEmbedding(text) {
   const response = await openai.embeddings.create({
-    model: 'text-embedding-3-large',
+    model: 'text-embedding-3-small',
     input: text
   });
   return response.data[0].embedding;
