@@ -1,25 +1,37 @@
-const vision = require('@google-cloud/vision');
 const OpenAI = require('openai');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// Initialize Google Cloud Vision client
-const visionClient = new vision.ImageAnnotatorClient({
-  credentials: JSON.parse(process.env.GOOGLE_CLOUD_CREDENTIALS || '{}')
-});
+const GOOGLE_VISION_API_KEY = process.env.GOOGLE_CLOUD_API_KEY;
 
 async function extractTextFromImage(imageUrl) {
   try {
-    const [result] = await visionClient.textDetection(imageUrl);
-    const detections = result.textAnnotations;
+    const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        requests: [{
+          image: { source: { imageUri: imageUrl } },
+          features: [{ type: 'TEXT_DETECTION' }]
+        }]
+      })
+    });
+
+    const data = await response.json();
     
-    if (!detections || detections.length === 0) {
+    if (data.error) {
+      throw new Error(data.error.message);
+    }
+
+    if (!data.responses || !data.responses[0].textAnnotations) {
       return '';
     }
-    
-    return detections[0].description;
+
+    return data.responses[0].textAnnotations[0].description;
   } catch (error) {
     console.error('OCR Error:', error);
     throw error;
