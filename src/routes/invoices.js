@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { extractTextFromImage, parseInvoiceWithAI } = require('../services/ocr');
+const { processInvoice } = require('../services/ocr');
 const { authenticateUser } = require('../middleware/auth');
 
 router.post('/process', authenticateUser, async (req, res) => {
@@ -13,18 +13,13 @@ router.post('/process', authenticateUser, async (req, res) => {
 
     console.log('Processing invoice:', image_url);
 
-    // Step 1: Extract text using OCR
-    const ocrText = await extractTextFromImage(image_url);
-    console.log('OCR Text:', ocrText.substring(0, 200) + '...');
-
-    // Step 2: Parse with AI
-    const parsed = await parseInvoiceWithAI(ocrText);
-    console.log('Parsed result:', parsed);
+    const result = await processInvoice(image_url);
+    console.log('Parsed result:', result);
 
     res.json({
-      warehouse: parsed.warehouse,
-      confidence: parsed.confidence,
-      products: parsed.products
+      warehouse: result.warehouse,
+      confidence: result.confidence,
+      products: result.products
     });
 
   } catch (error) {
