@@ -44,6 +44,13 @@ function calculateBestSplit(cartItems, prices) {
   const itemAssignments = [];
   let splitTotal = 0;
 
+  // Count how many warehouses have each product
+  const productWarehouseCount = {};
+  cartItems.forEach(item => {
+    const warehousesWithProduct = prices.filter(p => p.productId === item.productId);
+    productWarehouseCount[item.productId] = warehousesWithProduct.length;
+  });
+
   cartItems.forEach(item => {
     const productPrices = prices.filter(p => p.productId === item.productId);
     
@@ -62,7 +69,8 @@ function calculateBestSplit(cartItems, prices) {
       warehouseName: cheapest.warehouseName,
       quantity: item.quantity,
       unitPrice: cheapest.price,
-      itemTotal: itemCost
+      itemTotal: itemCost,
+      onlyAvailableHere: productWarehouseCount[item.productId] === 1
     });
   });
 
