@@ -2,19 +2,13 @@ const OpenAI = require('openai');
 
 const GOOGLE_VISION_API_KEY = process.env.GOOGLE_CLOUD_API_KEY;
 
-// Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-/**
- * Main function: Process invoice image
- */
 async function processInvoice(imageUrl) {
   try {
-    // Step 1: Extract text using Google Cloud Vision
     const ocrText = await extractTextFromImage(imageUrl);
-    // Step 2: Parse text using GPT-4
     const structuredData = await parseInvoiceText(ocrText);
     return structuredData;
   } catch (error) {
@@ -23,27 +17,19 @@ async function processInvoice(imageUrl) {
   }
 }
 
-/**
- * Extract text from image using Google Cloud Vision
- */
 async function extractTextFromImage(imageUrl) {
   try {
-    // Step 1: Fetch the image from the URL
     const response = await fetch(imageUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.statusText}`);
     }
 
-    // Step 2: Convert to base64
     const arrayBuffer = await response.arrayBuffer();
     const base64Image = Buffer.from(arrayBuffer).toString('base64');
 
-    // Step 3: Call Google Cloud Vision REST API
     const visionResponse = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         requests: [{
           image: { content: base64Image },
@@ -62,8 +48,7 @@ async function extractTextFromImage(imageUrl) {
       throw new Error('No text detected in image');
     }
 
-    const extractedText = data.responses[0].textAnnotations[0].description;
-    return extractedText;
+    return data.responses[0].textAnnotations[0].description;
 
   } catch (error) {
     console.error('OCR Error:', error);
@@ -71,9 +56,6 @@ async function extractTextFromImage(imageUrl) {
   }
 }
 
-/**
- * Parse OCR text using GPT-4
- */
 async function parseInvoiceText(ocrText) {
   try {
     const response = await openai.chat.completions.create({
@@ -165,6 +147,4 @@ Return ONLY valid JSON in this format:
   }
 }
 
-module.exports = {
-  processInvoice,
-};
+module.exports = { processInvoice };
