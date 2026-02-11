@@ -49,7 +49,7 @@ router.post('/save-with-embeddings', authenticateUser, async (req, res) => {
 
     res.json({
       success: true,
-      message: `Successfully embedded and saved ${products.length} products to ${warehouse}.`,
+      message: `Successfully saved ${products.length} products to ${warehouse}.`,
       count: products.length
     });
 
