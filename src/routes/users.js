@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { createClient } = require('@supabase/supabase-js');
-const authMiddleware = require('../middleware/auth');
+const { authenticateUser } = require('../middleware/auth');
 
 // Create admin client with service role key
 const supabaseAdmin = createClient(
@@ -10,7 +10,7 @@ const supabaseAdmin = createClient(
 );
 
 // DELETE /api/users/delete-account
-router.delete('/delete-account', authMiddleware, async (req, res) => {
+router.delete('/delete-account', authenticateUser, async (req, res) => {
   try {
     const userId = req.user.id;
 
